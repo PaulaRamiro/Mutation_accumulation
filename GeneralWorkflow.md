@@ -59,7 +59,7 @@ done
 
 ```
 
-And annotated using *Prokka* (v1.14.5) (https://github.com/tseemann/prokka):
+And the references were annotated using *Prokka* (v1.14.5) (https://github.com/tseemann/prokka):
 
 ```diff
 + # bash #
