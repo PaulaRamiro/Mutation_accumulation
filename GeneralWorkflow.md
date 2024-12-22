@@ -68,3 +68,32 @@ And the references were annotated using *Prokka* (v1.14.5) (https://github.com/t
 
 
 ```
+
+Variant calling was conducted using Breseq v0.36.1 (https://github.com/barricklab/breseq). Each assembly was mapped to the reference genome, which corresponds to the ancestral strain from day 0 of evolution.
+
+```diff
++ # bash #
+
+#!/bin/bash
+
+# Reference file
+REFERENCE="REFERENCE_DIR/ptaday0_illumina_nanopore.gbk"
+
+# Base directory for input read files
+READS_DIR="READS_DIR/"
+
+# Find all sample names starting with WTCHG_ in the reads directory
+SAMPLES=$(ls "${READS_DIR}" | grep -oE "WTCHG_[^_]+" | sort | uniq)
+
+# Iterate over each sample
+for SAMPLE in $SAMPLES; do
+    # Define input files and output directory
+    READ1="${READS_DIR}/${SAMPLE}_1_val_1.fq.gz"
+    READ2="${READS_DIR}/${SAMPLE}_2_val_2.fq.gz"
+    OUTPUT_DIR="${SAMPLE}"
+
+    # Run breseq
+    breseq -j 8 -p -o "${OUTPUT_DIR}" -r "${REFERENCE}" "${READ1}" "${READ2}"
+done
+
+```
