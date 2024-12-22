@@ -30,6 +30,8 @@ done
 
 ```
 
+## Variant calling 
+
 Then, reads were assembled into contigs using *SPAdes genome assembler* (v3.13.1) (https://github.com/ablab/spades):
 
 ```diff
