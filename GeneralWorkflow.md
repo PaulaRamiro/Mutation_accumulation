@@ -64,9 +64,10 @@ done
 And the references were annotated using *Prokka* (v1.14.5) (https://github.com/tseemann/prokka):
 
 ```diff
+
 + # bash #
 
-
+/prokka-1.14.5/bin/prokka --genus Escherichia --usegenus --species coli --prefix REFERENCE --outdir REFERENCE_annotation --mincontiglen 200 REFERENCE.fasta
 
 
 ```
