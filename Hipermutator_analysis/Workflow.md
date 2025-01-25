@@ -16,7 +16,23 @@ sed -i 's/^>\(.*\) \(.*\)$/>\2/' mutator_genes.fasta
 
 ```
 
+We search for mutations in each gene and each of our XXX samples with blast: 
 
 
+```diff
++ # bash #
+
+# Database with E.coli genomes
+makeblastdb -in tus_secuencias.fasta -dbtype nucl -out mi_base_datos
+blastn -query genes.fasta -db mi_base_datos -out resultados_blast.txt -outfmt 6
 
 
+# We run blastn for each gene
+mkdir resultados_blast
+
+for gene in $(grep ">" mutator_genes.fasta | sed 's/>//'); do
+    grep -A 1 $gene mutator_genes.fasta > ${gene}.fasta
+    blastn -query ${gene}.fasta -db mi_base_datos -out resultados_blast/${gene}_blast.txt -outfmt 6
+done
+
+```
