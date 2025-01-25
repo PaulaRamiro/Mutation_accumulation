@@ -36,3 +36,17 @@ for gene in $(grep ">" mutator_genes.fasta | sed 's/>//'); do
 done
 
 ```
+
+```
+#!/bin/bash
+
+# We concatenate all the assemblies in one for the blast analysis
+> concatenated_assemblies.fna
+
+# Iterar sobre cada archivo .fna
+for file in *.fna; do
+    # Agregar el nombre del archivo al encabezado de cada contig
+    awk -v filename=$(basename "$file") 'BEGIN {FS="\n"; OFS="\n"} /^>/ {print ">"filename "_" substr($0,2)} !/^>/ {print $0}' "$file" >> concatenated_assemblies.fna
+done
+
+```
