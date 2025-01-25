@@ -5,7 +5,9 @@ We download a reference assembly for Escherichia coli (ASM584v2, 24/01/2025) and
 ```diff
 + # bash #
 
-grep -A1 -E "(mutS|mutL|mutH|dnaQ|uvrA|uvrB|uvrC|dam)" archivo.ffn > mutator_genes.fasta
+grep -E "mutS|mutL|mutH|dnaQ|uvrA|uvrB|uvrC|dam" mg1655.ffn
+
+grep -A1 -E "(mutS|mutL|mutH|dnaQ|uvrA|uvrB|uvrC|dam)" mg1655.ffn > mutator_genes.fasta
 
 ```
 
