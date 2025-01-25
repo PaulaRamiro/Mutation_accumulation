@@ -101,15 +101,5 @@ done
 
 ```
 
-## Hipermutator strains analysis
-
-We download a reference assembly for Escherichia coli (ASM584v2, 24/01/2025) and search for genes involved in the mutator ability: 
-
-```diff
-+ # bash #
-
-grep -iE "gene=\"(mutS|mutL|mutH|dnaQ|uvrA|uvrB|uvrC|dam)\"" mg1655_GCA_000005845.2.gbff
-
-```
 
 
