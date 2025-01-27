@@ -5,7 +5,7 @@ We download a reference assembly for Escherichia coli (ASM584v2, 24/01/2025) and
 ```diff
 + # bash #
 
-grep -iE -A 1 "mutS|mutL|mutH|dnaQ|uvrA|uvrB|uvrC|dam[^a-z]" mg1655_bakta/mg1655.ffn > mutator_genes.fasta
+grep -iE -A 1 "mutS|mutL|mutH|mutT|mutY|mutM|dnaQ|uvrA|uvrB|uvrC" mg1655_bakta/mg1655.ffn > mutator_genes.fasta
 
 sed -i '/--/d' mutator_genes.fasta
 
@@ -16,37 +16,19 @@ sed -i 's/^>\(.*\) \(.*\)$/>\2/' mutator_genes.fasta
 
 ```
 
-We search for mutations in each gene and each of our XXX samples with blast: 
-
+We annotate the .fasta file with the genes of interest with Prokka v.1.14.6 ():
 
 ```diff
 + # bash #
+prokka mutator_genes.fasta  --prefix mutator_genes --out mutator_genes --force
 
-# Database with E.coli genomes
-makeblastdb -in tus_secuencias.fasta -dbtype nucl -out mi_base_datos
-blastn -query genes.fasta -db mi_base_datos -out resultados_blast.txt -outfmt 6
+```
+And perform a variant calling with *snippy v4.6.0* (https://github.com/tseemann/snippy):
 
-
-# We run blastn for each gene
-mkdir resultados_blast
-
-for gene in $(grep ">" mutator_genes.fasta | sed 's/>//'); do
-    grep -A 1 $gene mutator_genes.fasta > ${gene}.fasta
-    blastn -query ${gene}.fasta -db mi_base_datos -out resultados_blast/${gene}_blast.txt -outfmt 6
-done
+```diff
++ # bash #
+for file in *.fna; do snippy --outdir ${file%_genomic.fna} --ref /storage/MA/6_mutator_analysis/mutator_genes/mutator_genes.gbk --ctgs ${file} --force; done
 
 ```
 
-```
-#!/bin/bash
 
-# We concatenate all the assemblies in one for the blast analysis
-> concatenated_assemblies.fna
-
-# Iterar sobre cada archivo .fna
-for file in *.fna; do
-    # Agregar el nombre del archivo al encabezado de cada contig
-    awk -v filename=$(basename "$file") 'BEGIN {FS="\n"; OFS="\n"} /^>/ {print ">"filename "_" substr($0,2)} !/^>/ {print $0}' "$file" >> concatenated_assemblies.fna
-done
-
-```
