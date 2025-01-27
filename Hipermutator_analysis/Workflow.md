@@ -13,10 +13,9 @@ sed -i '/--/d' mutator_genes.fasta
 
 sed -i 's/^>\(.*\) \(.*\)$/>\2/' mutator_genes.fasta
 
-
 ```
 
-We annotate the .fasta file with the genes of interest with Prokka v.1.14.6 ():
+We annotate the .fasta file with the genes of interest with *Prokka v.1.14.6* (https://github.com/tseemann/prokka):
 
 ```diff
 + # bash #
