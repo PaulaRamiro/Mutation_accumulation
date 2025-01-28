@@ -27,6 +27,15 @@ And perform a variant calling with *snippy v4.6.0* (https://github.com/tseemann/
 + # bash #
 for file in *.fna; do snippy --outdir ${file%_genomic.fna} --ref /storage/MA/6_mutator_analysis/mutator_genes/mutator_genes.gbk --ctgs ${file} --force; done
 
+# We rename the .tab with the results as the name of the sample, and add a column with the name of the strain
+
+for f in */*.tab ;do fp=$(dirname "$f"); fl=$(basename "$f"); mv "$fp/$fl" "$fp/$fp"_"$fl"; done
+
+for f in *.tab; do awk -v fName="${f%.tab}" '{printf("%s,%s\n", (FNR==1 ? "filename" : fName), $0)}' "$f" > mod"$f"; done
+
+ cat mod* > snippy_results_mutators.txt
+
 ```
+
 
 
