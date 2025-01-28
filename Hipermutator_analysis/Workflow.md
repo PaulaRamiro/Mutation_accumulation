@@ -37,5 +37,11 @@ for f in *.tab; do awk -v fName="${f%.tab}" '{printf("%s,%s\n", (FNR==1 ? "filen
 
 ```
 
+Extract information from .vcf results:
+
+```
++ # bash #
+
+```
 
 
