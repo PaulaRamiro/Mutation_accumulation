@@ -42,6 +42,30 @@ Extract information from .vcf results:
 ```
 + # bash #
 
+for file in */*_snps.vcf; do grep -E '^#CHROM|^[^#]' ${file} > ${file%_snps.vcf}_limpio.vcf; done
+
+
+
 ```
 
+Download annotations: 
 
+```
++ # bash #
+
+#!/bin/bash
+
+# Archivo con la lista de ensamblajes
+assembly_file="assembly_list.txt"
+
+# Generar las URLs desde el archivo de ensamblajes
+cat "$assembly_file" | while read -r assembly; do
+    dir1=$(echo $assembly | cut -c 5-7)
+    dir2=$(echo $assembly | cut -c 8-10)
+    dir3=$(echo $assembly | cut -c 11-13)
+    echo "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/${dir1}/${dir2}/${dir3}/${assembly}/${assembly}_protein.faa.gz"
+done > urls_to_download.txt
+
+# Descargar las URLs en paralelo usando `parallel`
+parallel -j 8 wget {} < urls_to_download.txt
+```
