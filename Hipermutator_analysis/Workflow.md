@@ -39,7 +39,7 @@ for f in *.tab; do awk -v fName="${f%.tab}" '{printf("%s,%s\n", (FNR==1 ? "filen
 
 Extract information from .vcf results:
 
-```
+```diff
 + # bash #
 
 for file in */*_snps.vcf; do grep -E '^#CHROM|^[^#]' ${file} > ${file%_snps.vcf}_limpio.vcf; done
@@ -50,7 +50,7 @@ for file in */*_snps.vcf; do grep -E '^#CHROM|^[^#]' ${file} > ${file%_snps.vcf}
 
 Download annotations: 
 
-```
+```diff
 + # bash #
 
 #!/bin/bash
