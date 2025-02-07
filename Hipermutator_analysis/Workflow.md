@@ -383,16 +383,69 @@ if __name__ == "__main__":
 
 ```
 
-And we trim the reads using Trim-galore :
-
-
-
-
-
-
-Then, we download the BioSample accession from the BioProject (PRJNA294072) metadata downloaded in SRA Run Selector (https://www.ncbi.nlm.nih.gov/Traces/study/) and download the assemblies by using : 
+And we trim the reads using *Trim-galore v0.6.10* (https://github.com/FelixKrueger/TrimGalore):
 
 ```diff
++ # bash #
+#!/bin/bash
+
+# Input and output directories
+input_dir="/storage/MA/6_mutator_analysis/Lenski/single"
+output_dir="/storage/MA/6_mutator_analysis/Lenski/single/trimreads"
+
+# Create the output directory
+mkdir -p "$output_dir"
+
+# Define the trim_galore function to be used by parallel
+trim_galore_func() {
+    local file="$1"
+    local base_name=$(basename "$file" .fastq)
+
+    trim_galore --quality 20 --illumina --fastqc --gzip "$file" --output_dir "$output_dir"
+}
+
+export -f trim_galore_func
+
+# Get the number of CPU cores available
+num_cores=$(nproc)
+
+# Find all .fastq files and run the trim_galore_func in parallel, using the number of cores
+find "$input_dir"/*.fastq | parallel -j "$num_cores" trim_galore_func
+
+```
+
+
+Then, we assemble the reads with *SPAdes v3.13.1* (https://github.com/ablab/spades): 
+
+```diff
++ # bash #
+
+#!/bin/bash
+
+# Input and output directories
+input_dir="/storage/MA/6_mutator_analysis/Lenski/paired"
+spades_output_base="/storage/MA/6_mutator_analysis/Lenski/paired/spades"
+
+# Loop to run SPAdes for each pair of fastq.gz files
+for file_R1 in "$input_dir"/*_1_val_1.fq.gz; do
+    # Define the R2 file based on R1
+    file_R2="${file_R1/_1_val_1.fq.gz/_2_val_2.fq.gz}"
+
+    # Check if the R2 file exists
+    if [[ -f "$file_R2" ]]; then
+        # Define the output directory based on the base name of the file
+        base_name=$(basename "$file_R1" _1_val_1.fq.gz)
+        spades_output="$spades_output_base/$base_name"
+
+        # Create the output directory if it doesn't exist
+        mkdir -p "$spades_output"
+
+        # Run SPAdes
+        /usr/lib/spades/bin/spades.py -1 "$file_R1" -2 "$file_R2" -o "$spades_output"
+    else
+        echo "R2 file for $file_R1 not found. Skipping."
+    fi
+done
 
 
 ```
