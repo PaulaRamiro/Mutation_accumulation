@@ -2,7 +2,7 @@ Thirty-six evolved populations of the hypermutator strain carrying the plasmid p
 
 ## Trimming and assembly 
 
-First, low-quality ends of raw reads were trimmed to a Phred score of 20 using *TrimGalore* (v.0.6.6) (https://github.com/FelixKrueger/TrimGalore), with the following parameters:
+First, low-quality ends of raw reads were trimmed to a Phred score of 20 using *Trim Galore* (v.0.6.6) (https://github.com/FelixKrueger/TrimGalore), with the following parameters:
 
 ```diff
 
