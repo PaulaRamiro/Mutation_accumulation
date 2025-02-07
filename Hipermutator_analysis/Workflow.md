@@ -420,6 +420,8 @@ Then, we assemble the reads with *SPAdes v3.13.1* (https://github.com/ablab/spad
 ```diff
 + # bash #
 
+# For paired-end reads:
+
 #!/bin/bash
 
 # Input and output directories
@@ -445,6 +447,27 @@ for file_R1 in "$input_dir"/*_1_val_1.fq.gz; do
     else
         echo "R2 file for $file_R1 not found. Skipping."
     fi
+done
+
+# For single reads:
+
+#!/bin/bash
+
+# Directorios de entrada y salida
+input_dir="/storage/MA/6_mutator_analysis/Lenski/single"
+spades_output_base="/storage/MA/6_mutator_analysis/Lenski/single/spades"
+
+# Loop para ejecutar SPAdes para cada archivo de read single
+for file_R1 in "$input_dir"/*_trimmed.fq.gz; do
+    # Definir el nombre base del archivo
+    base_name=$(basename "$file_R1" _trimmed.fq.gz)
+    spades_output="$spades_output_base/$base_name"
+
+    # Crear el directorio de salida si no existe
+    mkdir -p "$spades_output"
+
+    # Ejecutar SPAdes
+    /usr/lib/spades/bin/spades.py -s "$file_R1" -o "$spades_output"
 done
 
 
