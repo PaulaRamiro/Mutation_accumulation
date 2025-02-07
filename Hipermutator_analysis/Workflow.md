@@ -390,7 +390,7 @@ And we trim the reads using Trim-galore :
 
 
 
-Then, we download the BioSample accession from the metadata downloaded in SRA Run Selector (https://www.ncbi.nlm.nih.gov/Traces/study/) and download the assemblies by using : 
+Then, we download the BioSample accession from the BioProject (PRJNA294072) metadata downloaded in SRA Run Selector (https://www.ncbi.nlm.nih.gov/Traces/study/) and download the assemblies by using : 
 
 ```diff
 
