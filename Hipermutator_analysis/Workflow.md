@@ -472,3 +472,181 @@ done
 
 
 ```
+
+And parsed the outputs with the following code:
+
+```diff
+
++ # python #
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+VCF Parser Script
+
+This script parses all .vcf files located within 'output' folders inside each SRRXXXX directory
+within a master directory. It extracts relevant VCF information and aggregates it into a
+summary CSV or Excel file, including the sample name derived from the SRRXXXX folder.
+
+Usage:
+    python vcf_parser_corrected.py -m /path/to/master_directory -o summary.xlsx
+
+Author: ChatGPT
+Date: 2024-04-27
+"""
+
+import os
+import argparse
+import pandas as pd
+import glob
+
+def parse_vcf(vcf_file, sample_name):
+    """
+    Parses a single VCF file and extracts relevant information.
+
+    Parameters:
+        vcf_file (str): Path to the VCF file.
+        sample_name (str): Name of the sample (SRRXXXX).
+
+    Returns:
+        pd.DataFrame: DataFrame containing parsed VCF data with an added 'Sample' column.
+    """
+    try:
+        with open(vcf_file, 'r') as f:
+            lines = f.readlines()
+    except Exception as e:
+        print(f"Error reading {vcf_file}: {e}")
+        return pd.DataFrame()  # Return empty DataFrame on error
+
+    data = []
+    headers = []
+    for line in lines:
+        line = line.strip()
+        if line.startswith('##'):
+            continue  # Skip meta-information lines
+        elif line.startswith('#CHROM'):
+            headers = line.lstrip('#').split('\t')
+        else:
+            if not headers:
+                print(f"Warning: No header found before data lines in {vcf_file}. Skipping file.")
+                return pd.DataFrame()
+            parts = line.split('\t')
+            if len(parts) < 8:
+                print(f"Warning: Incomplete VCF entry in {vcf_file}: {line}. Skipping this line.")
+                continue
+            record = dict(zip(headers, parts[:8]))
+            info_fields = record['INFO'].split(';')
+            info_dict = {}
+            for field in info_fields:
+                if '=' in field:
+                    key, value = field.split('=', 1)
+                    info_dict[key] = value
+                else:
+                    info_dict[field] = True  # Flag fields
+
+            # Extract AF, AD, DP if available
+            AF = info_dict.get('AF', 'NA')
+            AD = info_dict.get('AD', 'NA')
+            DP = info_dict.get('DP', 'NA')
+
+            # Append extracted information
+            data.append({
+                'Sample': sample_name,
+                'CHROM': record.get('CHROM', 'NA'),
+                'POS': record.get('POS', 'NA'),
+                'ID': record.get('ID', 'NA'),
+                'REF': record.get('REF', 'NA'),
+                'ALT': record.get('ALT', 'NA'),
+                'QUAL': record.get('QUAL', 'NA'),
+                'FILTER': record.get('FILTER', 'NA'),
+                'AF': AF,
+                'AD': AD,
+                'DP': DP
+            })
+
+    if not data:
+        print(f"No data parsed from {vcf_file}.")
+        return pd.DataFrame()
+
+    df = pd.DataFrame(data)
+    return df
+
+def find_vcf_files_corrected(master_dir):
+    """
+    Finds all .vcf files within 'output' folders inside SRRXXXX directories.
+
+    Parameters:
+        master_dir (str): Path to the master directory.
+
+    Returns:
+        list of tuples: Each tuple contains (VCF file path, Sample name).
+    """
+    vcf_files = []
+    # List all directories in master_dir that start with 'SRR'
+    sr_dirs = [d for d in os.listdir(master_dir) if os.path.isdir(os.path.join(master_dir, d)) and d.startswith('SRR')]
+    for sr_dir in sr_dirs:
+        sr_path = os.path.join(master_dir, sr_dir)
+        output_dir = os.path.join(sr_path, 'output')
+        vcf_path = os.path.join(output_dir, 'output.vcf')
+        if os.path.isfile(vcf_path):
+            vcf_files.append((vcf_path, sr_dir))
+        else:
+            print(f"Warning: No VCF file found in {output_dir}. Expected at least 'output.vcf'. Skipping {sr_dir}.")
+    return vcf_files
+
+def main():
+    # Set up argument parser
+    parser = argparse.ArgumentParser(
+        description='Parse multiple VCF files from a master directory and aggregate the data.'
+    )
+    parser.add_argument('-m', '--master_dir', required=True, help='Path to the master directory containing SRRXXXX folders.')
+    parser.add_argument('-o', '--output_file', required=True, help='Path for the output summary file (e.g., summary.xlsx or summary.csv).')
+    args = parser.parse_args()
+
+    master_dir = args.master_dir
+    output_file = args.output_file
+
+    if not os.path.isdir(master_dir):
+        print(f"Error: The specified master directory does not exist: {master_dir}")
+        return
+
+    # Find all VCF files
+    vcf_files = find_vcf_files_corrected(master_dir)
+    if not vcf_files:
+        print("No VCF files found. Exiting.")
+        return
+
+    print(f"Found {len(vcf_files)} VCF files. Starting parsing...")
+
+    # Parse all VCF files and collect data
+    all_data = []
+    for vcf_path, sample in vcf_files:
+        print(f"Parsing {vcf_path} for sample {sample}...")
+        df = parse_vcf(vcf_path, sample)
+        if not df.empty:
+            all_data.append(df)
+
+    if not all_data:
+        print("No data parsed from any VCF files. Exiting.")
+        return
+
+    # Concatenate all DataFrames
+    summary_df = pd.concat(all_data, ignore_index=True)
+
+    # Save to Excel or CSV based on the output file extension
+    try:
+        if output_file.lower().endswith('.xlsx') or output_file.lower().endswith('.xls'):
+            summary_df.to_excel(output_file, index=False)
+            print(f"Successfully saved summary to {output_file}")
+        elif output_file.lower().endswith('.csv'):
+            summary_df.to_csv(output_file, index=False)
+            print(f"Successfully saved summary to {output_file}")
+        else:
+            print("Error: Output file must have a .xlsx, .xls, or .csv extension.")
+    except Exception as e:
+        print(f"Error saving the summary file: {e}")
+
+if __name__ == "__main__":
+    main()
+    
+```
