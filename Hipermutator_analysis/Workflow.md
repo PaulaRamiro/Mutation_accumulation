@@ -650,3 +650,61 @@ if __name__ == "__main__":
     main()
     
 ```
+
+# Genomic information from paper:
+
+https://www.nature.com/articles/nature24287
+
+We downloaded the reads corresponding to samples from 50,000 to 60,000 generations.
+
+```diff
+
++ # bash #
+
+cat Runs.txt | parallel -j 8 "fasterq-dump {} --split-files --progress"
+
+```
+
+And we trim the reads using *Trim-galore v0.6.10* (https://github.com/FelixKrueger/TrimGalore):
+
+
+```diff
+
++ # bash #
+
+# Input and output directories
+input_dir="/mnt/9c115607-eaba-44b4-bf47-a7c423299bfb/Mutation_accumulation/Good_2017/reads/paired"
+output_dir="/mnt/9c115607-eaba-44b4-bf47-a7c423299bfb/Mutation_accumulation/Good_2017/reads/paired/trimreads"
+
+# Create the output directory
+mkdir -p "$output_dir"
+
+# Define the trim_galore function to be used by parallel
+trim_galore_func() {
+    local file1="$1"
+    local file2="${file1/_1.fastq/_2.fastq}"
+    local base_name=$(basename "$file1" _1.fastq)
+
+    trim_galore --quality 20 --illumina --fastqc --gzip --paired "$file1" "$file2" --output_dir "$output_dir"
+}
+
+export -f trim_galore_func
+
+# Get the number of CPU cores available
+# num_cores=$(nproc)
+
+# Find all _1.fastq files and run the trim_galore_func in parallel
+find "$input_dir" -name "*_1.fastq" | parallel -j 16 trim_galore_func
+
+```
+
+Then, we assembled the trimmed reads with spades: 
+
+```diff
+
++ # bash #
+
+cat list_SRR.txt | parallel -j 16 "spades.py -1 ${}1_val_1.fq.gz -2 ${}2_val_2.fq.gz -o ${}"
+
+```
+
