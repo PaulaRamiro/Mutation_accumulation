@@ -1,6 +1,3 @@
-![image](https://github.com/user-attachments/assets/debd788e-8821-493d-bc1c-5d0c59e35de5)
-
-
 ## Hipermutator strains analysis
 
 We download a reference assembly for Escherichia coli (ASM584v2, 24/01/2025) and extract the genes involved in the mutator ability: 
