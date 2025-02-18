@@ -1,5 +1,9 @@
 Thirty-six evolved populations of the hypermutator strain carrying the plasmid pTA44, and the twenty-four evolved populations of the wild-type strain were sequenced using Illumina. 
 
+
+
+
+
 ## Trimming and assembly 
 
 First, low-quality ends of raw reads were trimmed to a Phred score of 20 using *Trim Galore* (v.0.6.6) (https://github.com/FelixKrueger/TrimGalore), with the following parameters:
