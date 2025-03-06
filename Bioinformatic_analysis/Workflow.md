@@ -158,6 +158,7 @@ Then, reads were mapped against their assemblies using **Breseq** (v0.38.1) ([ht
 
 
 ```diff
++ # bash #
 
 # Exit immediately if a command exits with a non-zero status,
 # Treat unset variables as an error, and
