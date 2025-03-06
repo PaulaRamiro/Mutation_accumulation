@@ -1,6 +1,130 @@
 ## Download and trimming 
 
-Raw reads were trimmed to a Phred score of 20 using *TrimGalore* (v.0.6.6) (https://github.com/FelixKrueger/TrimGalore), with the following parameters:
+We downloaded the reads and the assemblies used in the analysis from the  NCBI database (n = 4,124) on 05/12/2023:
+
+```diff
+
++ # bash #
+
+# For Linux users:
+wget https://ftp.ncbi.nlm.nih.gov/genomes/refseq/assembly_summary_refseq.txt
+
+#For MacOS users:
+curl -O https://ftp.ncbi.nlm.nih.gov/genomes/refseq/assembly_summary_refseq.txt
+
+grep "Escherichia coli" assembly_summary_refseq.txt | grep "Complete Genome" > data_escherichia.txt
+
+```
+Then, we used **Entrez Direct** (v20.6) (https://www.ncbi.nlm.nih.gov/books/NBK179288/) to download the genome assemblies, with the following arguments:
+
+```diff
+
++ # bash #
+
+# For Linux users:
+esearch -db assembly -query "biosample_ID" \
+    | esummary \
+    | xtract -pattern DocumentSummary -element FtpPath_GenBank \
+    | while read -r line ;
+    do
+        fname=$(echo $line | grep -o 'GCF_.*' | sed 's/$/_genomic.fna.gz/') ;
+        wget "$line/$fname" ;
+    done
+
+# For MacOS users:
+esearch -db assembly -query "biosample_ID" \
+    | esummary \
+    | xtract -pattern DocumentSummary -element FtpPath_GenBank \
+    | while read -r line ;
+    do
+        fname=$(echo $line | grep -o 'GCF_.*' | sed 's/$/_genomic.fna.gz/') ;
+        curl -O "$line/$fname" ;
+    done
+
+```
+And we analyzed the number of contigs of each assembly file to filter out those that don't contain plasmids:
+
+```diff
+
++ # bash #
+
+mkdir LengthAssembly
+for file in *.fna; do
+    awk '/^>/{if (l!="") print l; print; l=0; next}{l+=length($0)}END{print l}' "$file" > "LengthAssembly/$(basename -- "$file" .fna)"
+done
+
++ # Python3 #
+
+import os
+current_directory = os.getcwd()
+
+# Create a dictionary to store modified lines
+modified_lines = {}
+
+# Modify files
+for filename in os.listdir(current_directory):
+    if not filename.startswith('MOD_'):
+        output_filename = f"MOD_{filename}"
+        file_name = os.path.splitext(filename)[0]
+        
+        with open(filename, 'r') as file:
+            with open(output_filename, 'w') as output_file:
+                output_file.write("Biosample,contig,sample,length\n")
+                for line in file:
+                    if line.startswith(">"):
+                        parts = line.strip().split(' ', 1)
+                        if len(parts) == 2:
+                            sample_info = f"{file_name},{parts[0]},{parts[1].rstrip()}"
+                            number_line = next(file).strip()
+                            output_file.write(f"{sample_info},{number_line}\n")
+                            modified_lines[sample_info] = number_line
+
+# Merge modified lines into 'alllengths.txt'
+with open('alllengths.txt', 'w') as merged_file:
+    merged_file.write("Biosample,contig,sample,length\n")
+    for sample_info, number_line in modified_lines.items():
+        merged_file.write(f"{sample_info},{number_line}\n")
+```
+
+Then, we downloaded the files containing run information for selected assemblies of NCBI, also with esearch: 
+
+```diff
+
++ # bash #
+
+esearch -db sra -query Biosample | efetch -format runinfo > Biosample.numbers
+
+```
+
+With the Biosample.numbers files, we filter those runs paired-end with "genomic" as a library source and from the platform Illumina, and use the run IDs to download the reads with fasterq-dump from **SRA-toolkit** package (v2.11.3)(https://hpc.nih.gov/apps/sratoolkit.html):
+
+
+```diff
+
++ # Python3 #
+
+import multiprocessing
+import subprocess
+
+with open('DefNumbers.txt', 'r') as file:    numbers = [(line.strip()) for line in file if line.strip()]
+
+def execute_fasterq_dump(number):
+    command = f"fasterq-dump --split-3 {number}"
+    try:
+        subprocess.run(command, shell=True, check=True)
+        print(f"Command executed for number: {number}")
+    except subprocess.CalledProcessError as e:
+        print(f"Error executing command for number {number}: {e}")
+
+if __name__ == "__main__":
+    pool = multiprocessing.Pool(processes=8)    
+    pool.map(execute_fasterq_dump, numbers)
+    pool.close()
+    pool.join()
+
+```
+
+Raw reads were trimmed to a Phred score of 20 using **TrimGalore** (v.0.6.6) (https://github.com/FelixKrueger/TrimGalore), with the following parameters:
 
 ```diff
 
@@ -30,7 +154,7 @@ done
 
 ## Variant calling 
 
-Then, reads were mapped against their assemblies using *Breseq* (v0.38.1) ([https://github.com/ablab/spades](https://github.com/barricklab/breseq)):
+Then, reads were mapped against their assemblies using **Breseq** (v0.38.1) ([https://github.com/ablab/spades](https://github.com/barricklab/breseq)):
 
 
 ```diff
