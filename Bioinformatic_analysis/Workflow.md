@@ -86,7 +86,7 @@ with open('alllengths.txt', 'w') as merged_file:
         merged_file.write(f"{sample_info},{number_line}\n")
 ```
 
-Then, we downloaded the files containing run information for selected assemblies of NCBI, also with esearch: 
+Then, we downloaded the files containing run information for selected assemblies of NCBI, also through esearch: 
 
 ```diff
 
