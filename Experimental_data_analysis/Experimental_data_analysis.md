@@ -34,7 +34,6 @@ done
 
 ```
 
-## Variant calling 
 
 Then, reads were assembled into contigs using *SPAdes genome assembler* (v3.13.1) (https://github.com/ablab/spades):
 
@@ -75,8 +74,9 @@ And the references were annotated using *Prokka* (v1.14.5) (https://github.com/t
 
 
 ```
+## Variant calling 
 
-Variant calling was conducted using *Breseq* v0.36.1 (https://github.com/barricklab/breseq). Each assembly was mapped to the reference genome, which corresponds to the ancestral strain from day 0 of evolution.
+Variant calling was conducted using *Breseq* v0.36.1 (https://github.com/barricklab/breseq). Each assembly was mapped to the reference genome, corresponding to the ancestral strain from day 0 of evolution.
 
 ```diff
 + # bash #
